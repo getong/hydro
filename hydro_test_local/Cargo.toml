@@ -19,6 +19,7 @@ stageleft = "0.8.0"
 rand = "0.8.0"
 
 hydro_test_local_macro = { path = "../hydro_test_local_macro" }
+tokio = "1.43.0"
 
 [build-dependencies]
 stageleft_tool = "0.8.0"
