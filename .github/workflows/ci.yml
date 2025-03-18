@@ -118,7 +118,7 @@ jobs:
           # For non-pull requests, event_name != 'pull_request' will be true, and 'nothing' is
           # truthy, so the entire && operator will resolve to 'nothing'. Then the || operator will
           # resolve to 'nothing' so we will exclude 'nothing'. https://stackoverflow.com/a/73822998
-          - rust_release: ${{ (needs.pre_job.outputs.should_skip != 'true' && 'nothing') || 'pinned-nightly' }}
+          - rust_release: ${{ ((needs.pre_job.outputs.should_skip != 'true' || github.event_name != 'pull_request') && 'nothing') || 'pinned-nightly' }}
           - rust_release: ${{ (github.event_name != 'pull_request' && 'nothing') || 'latest-stable' }}
           - os: ${{ (github.event_name != 'pull_request' && 'nothing') || 'windows-latest' }}
 
