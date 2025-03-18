@@ -150,7 +150,7 @@ pub fn compile_graph_trybuild(
             #tokens
         }
 
-        #[tokio::main]
+        #[hydro_lang::runtime_support::tokio::main(crate = "hydro_lang::runtime_support::tokio")]
         async fn main() {
             let ports = hydro_lang::dfir_rs::util::deploy::init_no_ack_start().await;
             let flow = __hydro_runtime(&ports);
