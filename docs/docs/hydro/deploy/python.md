@@ -1,6 +1,79 @@
 ---
-sidebar_position: 3
+sidebar_position: 99
 ---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Python Hydro Deploy (inactive)
+
+:::caution
+
+Hydro Deploy's Python CLI is experimental and not under active development. Users should prefer to use the [Rust version of Hydro Deploy](/docs/hydro/deploy).
+
+:::
+
+# Installation
+Hydro Deploy has two key components: a Python library used to define your Hydro app and deploy it, and an optional CLI that provides a user-friendly entrypoint.
+
+To install Hydro Deploy, you can use pip:
+
+```bash
+#shell-command-next-line
+pip install hydro-deploy
+```
+
+If you intend to deploy to cloud platforms (currently only Google Cloud is supported), you will need to install Terraform and the Google Cloud SDK:
+
+<Tabs groupId="operating-systems">
+<TabItem value="mac" label="macOS">
+
+```bash
+#shell-command-next-line
+brew install terraform
+
+#shell-command-next-line
+brew install google-cloud-sdk
+
+#shell-command-next-line
+gcloud auth application-default login
+```
+
+</TabItem>
+<TabItem value="win" label="Windows">
+
+```bash
+#shell-command-next-line
+choco install terraform
+
+#shell-command-next-line
+choco install gcloudsdk
+
+#shell-command-next-line
+gcloud auth application-default login
+```
+
+</TabItem>
+<TabItem value="linux" label="Linux">
+
+Follow the [Terraform instructions](https://developer.hashicorp.com/terraform/tutorials/gcp-get-started/install-cli) to install Terraform. Then follow the [Google Cloud](https://cloud.google.com/sdk/docs/install#linux) instructions to install the Google Cloud SDK. Finally, authenticate with Google Cloud:
+
+```bash
+#shell-command-next-line
+gcloud auth application-default login
+```
+
+</TabItem>
+</Tabs>
+
+## Verify Installation
+To check that Hydro Deploy is installed correctly, you can run the following command:
+
+```console
+#shell-command-next-line
+hydro --version
+Hydro Deploy 0.1.0
+```
 
 # Your First Deploy
 Now that we have Hydro Deploy installed, let's deploy our first app. We'll start with a simple app that echoes packets.
@@ -36,7 +109,7 @@ hydro_deploy_integration = "..."
 
 Let's open up `src/main.rs` in the generated project and write a new `main` function that initializes Hydro Deploy:
 
-```rust
+```rust,ignore
 #[dfir_rs::main]
 async fn main() {
     let ports = dfir_rs::util::deploy::init().await;
@@ -76,7 +149,7 @@ Now, we need to wire up the ports. Hydro Deploy uses _named ports_, which can th
 
 Returning briefly to our DFIR code, we can then load these ports and use them to send and receive packets:
 
-```rust
+```rust,ignore
 use hydro_deploy_integration::ConnectedDirect;
 use dfir_rs::dfir_syntax;
 

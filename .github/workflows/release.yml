@@ -6,7 +6,7 @@ on:
       bump:
         description: "Specify how to bump the version for Hydro crates. Does not affect dependencies."
         required: true
-        default: "patch"
+        default: "keep"
         type: choice
         options:
           - major
@@ -25,6 +25,9 @@ jobs:
     name: Release Job
     timeout-minutes: 20
     runs-on: ubuntu-latest
+    env:
+      RUST_BACKTRACE: 1
+      RUST_LOG: "debug"
     steps:
       # https://github.com/orgs/community/discussions/25305#discussioncomment-8256560
       # Unfortunately branch protection means that this workflow can't push the updated changelogs
