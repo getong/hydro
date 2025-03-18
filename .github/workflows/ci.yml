@@ -58,7 +58,7 @@ jobs:
 
       - name: Run sccache-cache
         if: matrix.rust_release == 'pinned-nightly'
-        uses: mozilla-actions/sccache-action@v0.0.4
+        uses: mozilla-actions/sccache-action@v0.0.8
 
       - name: Set Rust caching env vars
         if: matrix.rust_release == 'pinned-nightly'
@@ -136,7 +136,7 @@ jobs:
 
       - name: Run sccache-cache
         if: matrix.rust_release == 'pinned-nightly'
-        uses: mozilla-actions/sccache-action@v0.0.4
+        uses: mozilla-actions/sccache-action@v0.0.8
 
       - name: Set Rust caching env vars
         if: matrix.rust_release == 'pinned-nightly'
