@@ -8,10 +8,6 @@ use dfir_rs::scheduled::graph::Dfir;
 #[cfg(target_os = "linux")]
 use procfs::WithCurrentSystemInfo;
 
-pub const CPU_USAGE_PREFIX: &str = "CPU:";
-// Should remain consistent with dfir_lang/src/graph/ops/_counter.rs
-pub const COUNTER_PREFIX: &str = "_counter";
-
 #[cfg(not(feature = "runtime_measure"))]
 pub async fn run(flow: Dfir<'_>) {
     dfir_rs::util::deploy::launch_flow(flow).await;
