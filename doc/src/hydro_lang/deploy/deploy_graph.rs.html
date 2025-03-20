@@ -6,15 +6,15 @@
 <a href=#6 id=6 data-nosnippet>6</a><span class="kw">use </span>std::rc::Rc;
 <a href=#7 id=7 data-nosnippet>7</a><span class="kw">use </span>std::sync::Arc;
 <a href=#8 id=8 data-nosnippet>8</a>
-<a href=#9 id=9 data-nosnippet>9</a><span class="kw">use </span>dfir_lang::graph::DfirGraph;
-<a href=#10 id=10 data-nosnippet>10</a><span class="kw">use </span>dfir_rs::bytes::Bytes;
-<a href=#11 id=11 data-nosnippet>11</a><span class="kw">use </span>dfir_rs::futures::{Sink, SinkExt, Stream, StreamExt};
-<a href=#12 id=12 data-nosnippet>12</a><span class="kw">use </span>dfir_rs::util::deploy::{ConnectedSink, ConnectedSource};
-<a href=#13 id=13 data-nosnippet>13</a><span class="kw">use </span>hydro_deploy::custom_service::CustomClientPort;
-<a href=#14 id=14 data-nosnippet>14</a><span class="kw">use </span>hydro_deploy::rust_crate::RustCrateService;
-<a href=#15 id=15 data-nosnippet>15</a><span class="kw">use </span>hydro_deploy::rust_crate::ports::{DemuxSink, RustCrateSink, RustCrateSource, TaggedSource};
-<a href=#16 id=16 data-nosnippet>16</a><span class="kw">use </span>hydro_deploy::rust_crate::tracing_options::TracingOptions;
-<a href=#17 id=17 data-nosnippet>17</a><span class="kw">use </span>hydro_deploy::{CustomService, Deployment, Host, RustCrate, TracingResults};
+<a href=#9 id=9 data-nosnippet>9</a><span class="kw">use </span>bytes::Bytes;
+<a href=#10 id=10 data-nosnippet>10</a><span class="kw">use </span>dfir_lang::graph::DfirGraph;
+<a href=#11 id=11 data-nosnippet>11</a><span class="kw">use </span>futures::{Sink, SinkExt, Stream, StreamExt};
+<a href=#12 id=12 data-nosnippet>12</a><span class="kw">use </span>hydro_deploy::custom_service::CustomClientPort;
+<a href=#13 id=13 data-nosnippet>13</a><span class="kw">use </span>hydro_deploy::rust_crate::RustCrateService;
+<a href=#14 id=14 data-nosnippet>14</a><span class="kw">use </span>hydro_deploy::rust_crate::ports::{DemuxSink, RustCrateSink, RustCrateSource, TaggedSource};
+<a href=#15 id=15 data-nosnippet>15</a><span class="kw">use </span>hydro_deploy::rust_crate::tracing_options::TracingOptions;
+<a href=#16 id=16 data-nosnippet>16</a><span class="kw">use </span>hydro_deploy::{CustomService, Deployment, Host, RustCrate, TracingResults};
+<a href=#17 id=17 data-nosnippet>17</a><span class="kw">use </span>hydro_deploy_integration::{ConnectedSink, ConnectedSource};
 <a href=#18 id=18 data-nosnippet>18</a><span class="kw">use </span>nameof::name_of;
 <a href=#19 id=19 data-nosnippet>19</a><span class="kw">use </span>serde::Serialize;
 <a href=#20 id=20 data-nosnippet>20</a><span class="kw">use </span>serde::de::DeserializeOwned;
