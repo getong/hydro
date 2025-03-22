@@ -8,7 +8,7 @@
 <a href=#8 id=8 data-nosnippet>8</a>
 <a href=#9 id=9 data-nosnippet>9</a><span class="kw">use </span><span class="kw">super</span>::builder::FlowState;
 <a href=#10 id=10 data-nosnippet>10</a><span class="kw">use </span><span class="kw">crate</span>::cycle::{CycleCollection, ForwardRef, ForwardRefMarker};
-<a href=#11 id=11 data-nosnippet>11</a><span class="kw">use </span><span class="kw">crate</span>::ir::{DebugType, HydroIrMetadata, HydroNode, HydroSource};
+<a href=#11 id=11 data-nosnippet>11</a><span class="kw">use </span><span class="kw">crate</span>::ir::{HydroIrMetadata, HydroNode, HydroSource};
 <a href=#12 id=12 data-nosnippet>12</a><span class="kw">use crate</span>::{Singleton, Stream, Unbounded};
 <a href=#13 id=13 data-nosnippet>13</a>
 <a href=#14 id=14 data-nosnippet>14</a><span class="kw">pub mod </span>external_process;
@@ -90,7 +90,7 @@
 <a href=#90 id=90 data-nosnippet>90</a>    <span class="kw">fn </span>new_node_metadata&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; HydroIrMetadata {
 <a href=#91 id=91 data-nosnippet>91</a>        HydroIrMetadata {
 <a href=#92 id=92 data-nosnippet>92</a>            location_kind: <span class="self">self</span>.id(),
-<a href=#93 id=93 data-nosnippet>93</a>            output_type: <span class="prelude-val">Some</span>(DebugType(stageleft::quote_type::&lt;T&gt;())),
+<a href=#93 id=93 data-nosnippet>93</a>            output_type: <span class="prelude-val">Some</span>(stageleft::quote_type::&lt;T&gt;().into()),
 <a href=#94 id=94 data-nosnippet>94</a>            cardinality: <span class="prelude-val">None</span>,
 <a href=#95 id=95 data-nosnippet>95</a>            cpu_usage: <span class="prelude-val">None</span>,
 <a href=#96 id=96 data-nosnippet>96</a>        }
