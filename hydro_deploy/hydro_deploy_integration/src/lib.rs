@@ -351,7 +351,24 @@ pub async fn accept(bound: BoundServer) -> ConnectedDirect {
 }
 
 fn tcp_bytes(stream: TcpStream) -> impl StreamSink {
-    Framed::new(stream, LengthDelimitedCodec::new())
+    Framed::new(
+        // the executing runtime may be different from the one used to create the stream
+        TcpStream::from_std(stream.into_std().unwrap()).unwrap(),
+        LengthDelimitedCodec::new(),
+    )
+}
+
+#[cfg(feature = "io-uring")]
+fn io_uring_tcp_send(stream: TcpStream) -> impl Sink<Bytes, Error = io::Error> {
+    let uring_stream = UringTcpStream::from_std(stream.into_std().unwrap());
+    TcpUringSink {
+        stream: Some(uring_stream),
+        thunk: move |stream, bytes| async move { (stream.writev(bytes).await, stream) },
+        header_pool: VecDeque::new(),
+        cur_bufs: Some(vec![]),
+        first_is_header: true,
+        pending_write: None,
+    }
 }
 
 #[cfg(feature = "io-uring")]
@@ -382,7 +399,126 @@ fn io_uring_unix_send(stream: UnixStream) -> impl Sink<Bytes, Error = io::Error>
 
 #[cfg(unix)]
 fn unix_bytes(stream: UnixStream) -> impl StreamSink {
-    Framed::new(stream, LengthDelimitedCodec::new())
+    // the executing runtime may be different from the one used to create the stream
+    Framed::new(
+        UnixStream::from_std(stream.into_std().unwrap()).unwrap(),
+        LengthDelimitedCodec::new(),
+    )
+}
+
+#[cfg(feature = "io-uring")]
+fn io_uring_unix_send(stream: UnixStream) -> impl Sink<Bytes, Error = io::Error> {
+    let uring_stream = UringUnixStream::from_std(stream.into_std().unwrap());
+    TcpUringSink {
+        stream: Some(uring_stream),
+        thunk: move |stream, bytes| async move { (stream.writev(bytes).await, stream) },
+        header_pool: VecDeque::new(),
+        cur_bufs: Some(vec![]),
+        first_is_header: true,
+        pending_write: None,
+    }
+}
+
+#[cfg(feature = "io-uring")]
+#[pin_project]
+struct TcpUringSink<
+    S,
+    F: Future<Output = (BufResult<usize, Vec<Bytes>>, S)>,
+    T: Fn(S, Vec<Bytes>) -> F,
+> {
+    stream: Option<S>,
+    thunk: T,
+    header_pool: VecDeque<Bytes>,
+    cur_bufs: Option<Vec<Bytes>>,
+    first_is_header: bool,
+    #[pin]
+    pending_write: Option<F>,
+}
+
+#[cfg(feature = "io-uring")]
+impl<S, F: Future<Output = (BufResult<usize, Vec<Bytes>>, S)>, T: Fn(S, Vec<Bytes>) -> F>
+    Sink<Bytes> for TcpUringSink<S, F, T>
+{
+    type Error = io::Error;
+
+    fn poll_ready(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        if self.pending_write.is_none()
+            && self.cur_bufs.as_ref().unwrap().len() + 2 <= (libc::UIO_MAXIOV as usize)
+        {
+            Poll::Ready(Ok(()))
+        } else {
+            Self::poll_flush(self, cx)
+        }
+    }
+
+    fn start_send(self: Pin<&mut Self>, item: Bytes) -> Result<(), Self::Error> {
+        let this = self.project();
+        let mut header_buf = this
+            .header_pool
+            .pop_front()
+            .map(|v| {
+                let mut out = v.try_into_mut().unwrap();
+                out.clear();
+                out
+            })
+            .unwrap_or_else(|| BytesMut::new());
+        header_buf.clear();
+        header_buf.put_u32(item.len() as u32);
+        let bufs = this.cur_bufs.as_mut().unwrap();
+        bufs.extend([header_buf.freeze(), item]);
+        Ok(())
+    }
+
+    fn poll_flush(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        let mut this = self.project();
+
+        if this.pending_write.as_ref().is_none() {
+            if this.cur_bufs.as_ref().unwrap().is_empty() {
+                return Poll::Ready(Ok(()));
+            }
+
+            this.pending_write.set(Some((this.thunk)(
+                this.stream.take().unwrap(),
+                this.cur_bufs.take().unwrap(),
+            )));
+        }
+
+        Poll::Ready({
+            let ((result, mut bufs), stream) =
+                ready!(this.pending_write.as_mut().as_pin_mut().unwrap().poll(cx));
+            this.pending_write.set(None);
+            *this.stream = Some(stream);
+            let bytes_written = result.unwrap(); //result?;
+            let mut cur_index = bytes_written;
+            let mut remove_count = 0;
+            while remove_count < bufs.len() && cur_index >= bufs[remove_count].len() {
+                cur_index -= bufs[remove_count].len();
+                remove_count += 1;
+            }
+
+            for removed in bufs.drain(..remove_count) {
+                if *this.first_is_header {
+                    this.header_pool.push_back(removed);
+                }
+                *this.first_is_header = !*this.first_is_header;
+            }
+
+            if cur_index > 0 {
+                bufs[0] = bufs[0].slice(cur_index..);
+            }
+
+            *this.cur_bufs = Some(bufs);
+            Ok(())
+        })
+    }
+
+    fn poll_close(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        if self.pending_write.is_some() {
+            Self::poll_flush(self, cx)
+        } else {
+            Poll::Ready(Ok(()))
+        }
+    }
 }
 
 #[cfg(feature = "io-uring")]
