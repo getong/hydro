@@ -1023,12 +1023,12 @@ impl DfirGraph {
                                     let op_span = op_span.unwrap();
                                     break 'a format!(
                                         "loc_{}_{}_{}_{}_{}",
-                                        op_span
-                                            .source_file()
-                                            .path()
-                                            .display()
-                                            .to_string()
-                                            .replace(|x: char| !x.is_alphanumeric(), "_"),
+                                        crate::pretty_span::make_source_path_relative(
+                                            &op_span.source_file().path()
+                                        )
+                                        .display()
+                                        .to_string()
+                                        .replace(|x: char| !x.is_ascii_alphanumeric(), "_"),
                                         op_span.start().line(),
                                         op_span.start().column(),
                                         op_span.end().line(),

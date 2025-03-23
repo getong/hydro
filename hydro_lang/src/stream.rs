@@ -1830,7 +1830,7 @@ impl<'a, T, L: Location<'a>, Order> Stream<T, Tick<L>, Bounded, Order> {
     }
 }
 
-pub fn serialize_bincode_with_type(is_demux: bool, t_type: syn::Type) -> syn::Expr {
+pub fn serialize_bincode_with_type(is_demux: bool, t_type: &syn::Type) -> syn::Expr {
     let root = get_this_crate();
 
     if is_demux {
@@ -1853,10 +1853,10 @@ pub fn serialize_bincode_with_type(is_demux: bool, t_type: syn::Type) -> syn::Ex
 }
 
 fn serialize_bincode<T: Serialize>(is_demux: bool) -> syn::Expr {
-    serialize_bincode_with_type(is_demux, stageleft::quote_type::<T>())
+    serialize_bincode_with_type(is_demux, &stageleft::quote_type::<T>())
 }
 
-pub fn deserialize_bincode_with_type(tagged: Option<syn::Type>, t_type: syn::Type) -> syn::Expr {
+pub fn deserialize_bincode_with_type(tagged: Option<&syn::Type>, t_type: &syn::Type) -> syn::Expr {
     let root = get_this_crate();
 
     if let Some(c_type) = tagged {
@@ -1875,8 +1875,8 @@ pub fn deserialize_bincode_with_type(tagged: Option<syn::Type>, t_type: syn::Typ
     }
 }
 
-pub(super) fn deserialize_bincode<T: DeserializeOwned>(tagged: Option<syn::Type>) -> syn::Expr {
-    deserialize_bincode_with_type(tagged, stageleft::quote_type::<T>())
+pub(super) fn deserialize_bincode<T: DeserializeOwned>(tagged: Option<&syn::Type>) -> syn::Expr {
+    deserialize_bincode_with_type(tagged, &stageleft::quote_type::<T>())
 }
 
 impl<'a, T, L: Location<'a> + NoTick, B, Order> Stream<T, L, B, Order> {
@@ -1891,7 +1891,9 @@ impl<'a, T, L: Location<'a> + NoTick, B, Order> Stream<T, L, B, Order> {
     {
         let serialize_pipeline = Some(serialize_bincode::<CoreType>(L::Root::is_demux()));
 
-        let deserialize_pipeline = Some(deserialize_bincode::<CoreType>(L::Root::tagged_type()));
+        let deserialize_pipeline = Some(deserialize_bincode::<CoreType>(
+            L::Root::tagged_type().as_ref(),
+        ));
 
         Stream::new(
             other.clone(),
@@ -2051,17 +2053,31 @@ impl<'a, T, L: Location<'a> + NoTick, B, Order> Stream<T, L, B, Order> {
         Order::Min,
     >
     where
-        L::Root: CanSend<'a, Cluster<'a, C2>, In<T> = (ClusterId<C2>, T)>,
+        L::Root: CanSend<'a, Cluster<'a, C2>, In<Bytes> = (ClusterId<C2>, Bytes)>,
         T: Clone + Serialize + DeserializeOwned,
         Order: MinOrder<<L::Root as CanSend<'a, Cluster<'a, C2>>>::OutStrongestOrder<Order>>,
     {
         let ids = other.members();
 
-        self.flat_map_ordered(q!(|b| ids.iter().map(move |id| (
-            ::std::clone::Clone::clone(id),
-            ::std::clone::Clone::clone(&b)
-        ))))
-        .send_bincode(other)
+        let to_send: Stream<(u32, Bytes), L, B, Order> = self
+            .map::<Bytes, _>(q!(|v| bincode::serialize(&v).unwrap().into()))
+            .flat_map_ordered(q!(|v| { ids.iter().map(move |id| (id.raw_id, v.clone())) }));
+
+        let deserialize_pipeline = Some(deserialize_bincode::<T>(L::Root::tagged_type().as_ref()));
+
+        Stream::new(
+            other.clone(),
+            HydroNode::Network {
+                from_key: None,
+                to_location: other.id(),
+                to_key: None,
+                serialize_fn: None,
+                instantiate_fn: DebugInstantiate::Building,
+                deserialize_fn: deserialize_pipeline.map(|e| e.into()),
+                input: Box::new(to_send.ir_node.into_inner()),
+                metadata: other.new_node_metadata::<T>(),
+            },
+        )
     }
 
     pub fn broadcast_bincode_anonymous<C2: 'a, Tag>(
@@ -2069,7 +2085,8 @@ impl<'a, T, L: Location<'a> + NoTick, B, Order> Stream<T, L, B, Order> {
         other: &Cluster<'a, C2>,
     ) -> Stream<T, Cluster<'a, C2>, Unbounded, Order::Min>
     where
-        L::Root: CanSend<'a, Cluster<'a, C2>, In<T> = (ClusterId<C2>, T), Out<T> = (Tag, T)> + 'a,
+        L::Root:
+            CanSend<'a, Cluster<'a, C2>, In<Bytes> = (ClusterId<C2>, Bytes), Out<T> = (Tag, T)>,
         T: Clone + Serialize + DeserializeOwned,
         Order: MinOrder<<L::Root as CanSend<'a, Cluster<'a, C2>>>::OutStrongestOrder<Order>>,
     {
@@ -2087,7 +2104,7 @@ impl<'a, T, L: Location<'a> + NoTick, B, Order> Stream<T, L, B, Order> {
         Order::Min,
     >
     where
-        L::Root: CanSend<'a, Cluster<'a, C2>, In<Bytes> = (ClusterId<C2>, T)> + 'a,
+        L::Root: CanSend<'a, Cluster<'a, C2>, In<Bytes> = (ClusterId<C2>, T)>,
         T: Clone,
         Order: MinOrder<<L::Root as CanSend<'a, Cluster<'a, C2>>>::OutStrongestOrder<Order>>,
     {

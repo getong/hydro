@@ -13,9 +13,9 @@ error[E0277]: the trait bound `&str: dfir_rs::futures::Sink<_>` is not satisfied
             `Box<S>` implements `dfir_rs::futures::Sink<Item>`
             `BufferUnordered<S>` implements `dfir_rs::futures::Sink<Item>`
             `Buffered<S>` implements `dfir_rs::futures::Sink<Item>`
-            `DemuxDrain<T, S>` implements `dfir_rs::futures::Sink<(u32, T)>`
             `Fanout<Si1, Si2>` implements `dfir_rs::futures::Sink<Item>`
             `FlatMapUnordered<St, U, F>` implements `dfir_rs::futures::Sink<_Item>`
+            `FlattenSink<Fut, Si>` implements `dfir_rs::futures::Sink<_Item>`
           and $N others
 note: required by a bound in `main::op_2v1__dest_sink__loc_dfir_rs_tests_compile_fail_surface_dest_sink_badsink_rs_6_31_6_46`
  --> tests/compile-fail/surface_dest_sink_badsink.rs:6:31
@@ -35,9 +35,9 @@ error[E0277]: the trait bound `&str: dfir_rs::futures::Sink<_>` is not satisfied
             `Box<S>` implements `dfir_rs::futures::Sink<Item>`
             `BufferUnordered<S>` implements `dfir_rs::futures::Sink<Item>`
             `Buffered<S>` implements `dfir_rs::futures::Sink<Item>`
-            `DemuxDrain<T, S>` implements `dfir_rs::futures::Sink<(u32, T)>`
             `Fanout<Si1, Si2>` implements `dfir_rs::futures::Sink<Item>`
             `FlatMapUnordered<St, U, F>` implements `dfir_rs::futures::Sink<_Item>`
+            `FlattenSink<Fut, Si>` implements `dfir_rs::futures::Sink<_Item>`
           and $N others
 note: required by a bound in `main::op_2v1__dest_sink__loc_dfir_rs_tests_compile_fail_surface_dest_sink_badsink_rs_6_31_6_46`
  --> tests/compile-fail/surface_dest_sink_badsink.rs:6:31
@@ -57,9 +57,9 @@ error[E0277]: the trait bound `&str: dfir_rs::futures::Sink<_>` is not satisfied
             `Box<S>` implements `dfir_rs::futures::Sink<Item>`
             `BufferUnordered<S>` implements `dfir_rs::futures::Sink<Item>`
             `Buffered<S>` implements `dfir_rs::futures::Sink<Item>`
-            `DemuxDrain<T, S>` implements `dfir_rs::futures::Sink<(u32, T)>`
             `Fanout<Si1, Si2>` implements `dfir_rs::futures::Sink<Item>`
             `FlatMapUnordered<St, U, F>` implements `dfir_rs::futures::Sink<_Item>`
+            `FlattenSink<Fut, Si>` implements `dfir_rs::futures::Sink<_Item>`
           and $N others
 note: required by a bound in `main::op_2v1__dest_sink__loc_dfir_rs_tests_compile_fail_surface_dest_sink_badsink_rs_6_31_6_46`
  --> tests/compile-fail/surface_dest_sink_badsink.rs:6:31
