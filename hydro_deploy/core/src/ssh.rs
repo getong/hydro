@@ -324,6 +324,17 @@ pub trait LaunchedSshHost: Send + Sync {
     }
 }
 
+async fn create_channel(session: &AsyncSession<TcpStream>) -> Result<AsyncChannel<TcpStream>> {
+    async_retry(
+        &|| async {
+            Ok(tokio::time::timeout(Duration::from_secs(60), session.channel_session()).await??)
+        },
+        10,
+        Duration::from_secs(1),
+    )
+    .await
+}
+
 #[async_trait]
 impl<T: LaunchedSshHost> LaunchedHost for T {
     fn server_config(&self, bind_type: &ServerStrategy) -> ServerBindConfig {
@@ -414,38 +425,48 @@ impl<T: LaunchedSshHost> LaunchedHost for T {
         let user = self.ssh_user();
         let binary_path = PathBuf::from(format!("/home/{user}/hydro-{unique_name}"));
 
-        let channel = ProgressTracker::leaf(
-            format!("launching binary {}", binary_path.display()),
+        let channel = ProgressTracker::leaf(format!("launching binary {}", binary_path.display()),
             async {
-                let mut channel =
-                    async_retry(
-                        &|| async {
-                            Ok(tokio::time::timeout(
-                                Duration::from_secs(60),
-                                session.channel_session(),
-                            )
-                            .await??)
-                        },
-                        10,
-                        Duration::from_secs(1),
-                    )
-                    .await?;
+                let mut channel = create_channel(&session).await?;
 
                 let mut command = binary_path.to_str().unwrap().to_owned();
                 for arg in args{
                     command.push(' ');
                     command.push_str(&shell_escape::unix::escape(Cow::Borrowed(arg)))
                 }
-                // Launch with perf if specified, also copy local binary to expected place for perf report to work
-                if let Some(TracingOptions { frequency, .. }) = tracing.clone() {
+                // Launch with tracing if specified, also copy local binary to expected place for perf report to work
+                if let Some(TracingOptions { frequency, setup_command, .. }) = tracing.clone() {
+
+                    // Run setup command
+                    if let Some(setup_command) = setup_command {
+                        let mut setup_channel = create_channel(&session).await?;
+                        setup_channel
+                            .exec(&setup_command)
+                            .await?;
+
+                        // log outputs
+                        let mut setup_stdout = FuturesBufReader::new(setup_channel.stream(0)).lines();
+                        while let Some(line) = setup_stdout.next().await {
+                            ProgressTracker::eprintln(format!("[install perf] {}", line.unwrap()));
+                        }
+
+                        setup_channel.wait_eof().await?;
+                        let exit_code = setup_channel.exit_status()?;
+                        setup_channel.wait_close().await?;
+                        if exit_code != 0 {
+                            anyhow::bail!("Failed to install perf on remote host");
+                        }
+                    }
+
                     // Attach perf to the command
+                    // Note: `LaunchedSshHost` assumes `perf` on linux.
                     command = format!(
                         "perf record -F {frequency} -e cycles:u --call-graph dwarf,65528 -o {PERF_OUTFILE} {command}",
                     );
                 }
                 channel.exec(&command).await?;
                 anyhow::Ok(channel)
-            },
+            }
         )
         .await?;
 

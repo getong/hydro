@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use hydro_deploy::gcp::GcpNetwork;
-use hydro_deploy::rust_crate::tracing_options::TracingOptions;
+use hydro_deploy::rust_crate::tracing_options::{DEBIAN_PERF_SETUP_COMMAND, TracingOptions};
 use hydro_deploy::{Deployment, Host};
 use hydro_lang::deploy::{DeployCrateWrapper, TrybuildHost};
 use hydro_lang::ir::deep_clone;
@@ -41,7 +41,6 @@ async fn main() {
 
     let create_host: HostCreator = if host_arg == "gcp" {
         Box::new(move |deployment| -> Arc<dyn Host> {
-            let startup_script = "sudo sh -c 'apt update && apt install -y linux-perf binutils && echo -1 > /proc/sys/kernel/perf_event_paranoid && echo 0 > /proc/sys/kernel/kptr_restrict'";
             deployment
                 .GcpComputeEngineHost()
                 .project(project.as_ref().unwrap())
@@ -49,7 +48,6 @@ async fn main() {
                 .image("debian-cloud/debian-11")
                 .region("us-west1-a")
                 .network(network.as_ref().unwrap().clone())
-                .startup_script(startup_script)
                 .add()
         })
     } else {
@@ -86,6 +84,7 @@ async fn main() {
                         .fold_outfile("leader.data.folded")
                         .flamegraph_outfile("leader.svg")
                         .frequency(frequency)
+                        .setup_command(DEBIAN_PERF_SETUP_COMMAND)
                         .build(),
                 ),
         )
@@ -95,15 +94,16 @@ async fn main() {
                 TrybuildHost::new(create_host(&mut deployment))
                     .rustflags(rustflags)
                     .additional_hydro_features(vec!["runtime_measure".to_string()])
-                    .tracing(
-                        TracingOptions::builder()
-                            .perf_raw_outfile(format!("cluster{}.perf.data", idx))
-                            .dtrace_outfile(format!("cluster{}.leader.stacks", idx))
-                            .fold_outfile(format!("cluster{}.data.folded", idx))
-                            .flamegraph_outfile(format!("cluster{}.svg", idx))
-                            .frequency(frequency)
-                            .build(),
-                    )
+                // .tracing(
+                //     TracingOptions::builder()
+                //         .perf_raw_outfile(format!("cluster{}.perf.data", idx))
+                //         .dtrace_outfile(format!("cluster{}.leader.stacks", idx))
+                //         .fold_outfile(format!("cluster{}.data.folded", idx))
+                //         .flamegraph_outfile(format!("cluster{}.svg", idx))
+                //         .frequency(frequency)
+                //         .setup_command(DEBIAN_PERF_SETUP_COMMAND)
+                //         .build(),
+                // )
             }),
         )
         .deploy(&mut deployment);
