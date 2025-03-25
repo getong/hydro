@@ -34,7 +34,7 @@ async fn main() {
         let localhost = deployment.Localhost();
         (
             Box::new(move |_| -> Arc<dyn Host> { localhost.clone() }),
-            "",
+            "-C opt-level=3 -C codegen-units=1 -C strip=none -C debuginfo=2 -C lto=off",
         )
     };
 

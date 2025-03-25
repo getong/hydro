@@ -155,7 +155,24 @@ impl LaunchedHost for LaunchedLocalhost {
         tracing: Option<TracingOptions>,
     ) -> Result<Box<dyn LaunchedBinary>> {
         let (maybe_perf_outfile, mut command) = if let Some(tracing) = tracing.as_ref() {
-            if cfg!(target_os = "macos") || cfg!(target_family = "windows") {
+            if cfg!(target_os = "macos") {
+                // samply
+                ProgressTracker::println(
+                    format!("[{id} tracing] Profiling binary with `samply`.",),
+                );
+                let samply_outfile = tempfile::NamedTempFile::new()?;
+
+                let mut command = Command::new("samply");
+                command
+                    .arg("record")
+                    .arg("--save-only")
+                    .arg("--unstable-presymbolicate")
+                    .arg("--output")
+                    .arg(samply_outfile.as_ref())
+                    .arg(&binary.bin_path)
+                    .args(args);
+                (Some(samply_outfile), command)
+            } else if cfg!(target_family = "windows") {
                 // dtrace
                 ProgressTracker::println(
                     format!("[{id} tracing] Profiling binary with `dtrace`.",),
