@@ -94,16 +94,16 @@ async fn main() {
                 TrybuildHost::new(create_host(&mut deployment))
                     .rustflags(rustflags)
                     .additional_hydro_features(vec!["runtime_measure".to_string()])
-                    .tracing(
-                        TracingOptions::builder()
-                            .perf_raw_outfile(format!("cluster{}.perf.data", idx))
-                            .dtrace_outfile(format!("cluster{}.leader.stacks", idx))
-                            .fold_outfile(format!("cluster{}.data.folded", idx))
-                            .flamegraph_outfile(format!("cluster{}.svg", idx))
-                            .frequency(frequency)
-                            .setup_command(DEBIAN_PERF_SETUP_COMMAND)
-                            .build(),
-                    )
+                // .tracing(
+                //     TracingOptions::builder()
+                //         .perf_raw_outfile(format!("cluster{}.perf.data", idx))
+                //         .dtrace_outfile(format!("cluster{}.leader.stacks", idx))
+                //         .fold_outfile(format!("cluster{}.data.folded", idx))
+                //         .flamegraph_outfile(format!("cluster{}.svg", idx))
+                //         .frequency(frequency)
+                //         .setup_command(DEBIAN_PERF_SETUP_COMMAND)
+                //         .build(),
+                // )
             }),
         )
         .deploy(&mut deployment);
