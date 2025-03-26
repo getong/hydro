@@ -1,6 +1,9 @@
+use std::collections::BTreeMap;
 #[cfg(unix)]
 use std::os::unix::process::ExitStatusExt;
+use std::path::PathBuf;
 use std::process::{ExitStatus, Stdio};
+use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 
 use anyhow::{Result, bail};
@@ -11,11 +14,15 @@ use futures::{AsyncBufReadExt as _, AsyncWriteExt as _};
 use inferno::collapse::Collapse;
 use inferno::collapse::dtrace::Folder as DtraceFolder;
 use inferno::collapse::perf::Folder as PerfFolder;
+use itertools::Itertools;
+use serde::{Deserialize, Serialize};
 use tempfile::NamedTempFile;
 use tokio::io::{AsyncBufReadExt as _, BufReader as TokioBufReader};
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::compat::FuturesAsyncReadCompatExt;
 use tokio_util::io::SyncIoBridge;
+use wholesym::debugid::DebugId;
+use wholesym::{LookupAddress, MultiArchDisambiguator, SymbolManager, SymbolManagerConfig};
 
 use crate::progress::ProgressTracker;
 use crate::rust_crate::flamegraph::handle_fold_data;
@@ -100,6 +107,55 @@ impl LaunchedLocalhostBinary {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct FxProfile {
+    threads: Vec<Thread>,
+    libs: Vec<Lib>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Lib {
+    pub path: String,
+    #[serde(rename = "breakpadId")]
+    pub breakpad_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Thread {
+    #[serde(rename = "stackTable")]
+    pub stack_table: StackTable,
+    #[serde(rename = "frameTable")]
+    pub frame_table: FrameTable,
+    #[serde(rename = "funcTable")]
+    pub func_table: FuncTable,
+    pub samples: Samples,
+    #[serde(rename = "isMainThread")]
+    pub is_main_thread: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Samples {
+    pub stack: Vec<Option<usize>>,
+    pub weight: Vec<u64>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct StackTable {
+    pub prefix: Vec<Option<usize>>,
+    pub frame: Vec<usize>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct FrameTable {
+    pub address: Vec<u64>,
+    pub func: Vec<usize>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct FuncTable {
+    pub resource: Vec<usize>,
+}
+
 #[async_trait]
 impl LaunchedBinary for LaunchedLocalhostBinary {
     fn stdin(&self) -> mpsc::UnboundedSender<String> {
@@ -177,8 +233,8 @@ impl LaunchedBinary for LaunchedLocalhostBinary {
                 let tracing_data = self.tracing_data_local.take().unwrap();
 
                 if cfg!(target_os = "macos") || cfg!(target_family = "windows") {
-                    if let Some(dtrace_outfile) = tracing_config.dtrace_outfile.as_ref() {
-                        std::fs::copy(&tracing_data.outfile, dtrace_outfile)?;
+                    if let Some(samply_outfile) = tracing_config.samply_outfile.as_ref() {
+                        std::fs::copy(&tracing_data.outfile, samply_outfile)?;
                     }
                 } else if cfg!(target_family = "unix") {
                     if let Some(perf_outfile) = tracing_config.perf_raw_outfile.as_ref() {
@@ -186,7 +242,107 @@ impl LaunchedBinary for LaunchedLocalhostBinary {
                     }
                 }
 
-                let fold_data = if cfg!(target_os = "macos") || cfg!(target_family = "windows") {
+                let fold_data = if cfg!(target_os = "macos") {
+                    let loaded = serde_json::from_reader::<_, FxProfile>(std::fs::File::open(
+                        tracing_data.outfile.path(),
+                    )?)?;
+
+                    let symbol_manager = SymbolManager::with_config(SymbolManagerConfig::default());
+
+                    let mut symbol_maps = vec![];
+                    for lib in &loaded.libs {
+                        symbol_maps.push(
+                            symbol_manager
+                                .load_symbol_map_for_binary_at_path(
+                                    &PathBuf::from_str(&lib.path).unwrap(),
+                                    Some(MultiArchDisambiguator::DebugId(
+                                        DebugId::from_breakpad(&lib.breakpad_id).unwrap(),
+                                    )),
+                                )
+                                .await
+                                .ok(),
+                        );
+                    }
+
+                    let mut folded_frames: BTreeMap<Vec<String>, u64> = BTreeMap::new();
+                    for thread in loaded.threads.into_iter().filter(|t| t.is_main_thread) {
+                        let mut frame_lookuped = vec![];
+                        for frame_id in 0..thread.frame_table.address.len() {
+                            let address = thread.frame_table.address[frame_id];
+                            let func_id = thread.frame_table.func[frame_id];
+                            let resource_id = thread.func_table.resource[func_id];
+                            let maybe_symbol_map = &symbol_maps[resource_id];
+
+                            if let Some(symbols_map) = maybe_symbol_map {
+                                if let Some(lookuped) = symbols_map
+                                    .lookup(LookupAddress::Relative(address as u32))
+                                    .await
+                                {
+                                    if let Some(inline_frames) = lookuped.frames {
+                                        frame_lookuped.push(
+                                            inline_frames
+                                                .into_iter()
+                                                .rev()
+                                                .map(|inline| {
+                                                    inline
+                                                        .function
+                                                        .unwrap_or_else(|| "unknown".to_string())
+                                                })
+                                                .join(";"),
+                                        );
+                                    } else {
+                                        frame_lookuped.push(lookuped.symbol.name);
+                                    }
+                                } else {
+                                    frame_lookuped.push("unknown".to_string());
+                                }
+                            } else {
+                                frame_lookuped.push("unknown".to_string());
+                            }
+                        }
+
+                        let all_leaves_grouped = thread
+                            .samples
+                            .stack
+                            .iter()
+                            .enumerate()
+                            .filter_map(|(idx, s)| s.map(|s| (idx, s)))
+                            .map(|(idx, leaf)| (leaf, thread.samples.weight[idx]))
+                            .chunk_by(|v| v.0)
+                            .into_iter()
+                            .map(|(leaf, group)| {
+                                let weight = group.map(|t| t.1).sum();
+                                (leaf, weight)
+                            })
+                            .collect::<Vec<(usize, u64)>>();
+
+                        for (leaf, weight) in all_leaves_grouped {
+                            let mut cur_stack = Some(leaf);
+                            let mut stack = vec![];
+                            while let Some(sample) = cur_stack {
+                                let frame_id = thread.stack_table.frame[sample];
+                                stack.push(frame_lookuped[frame_id].clone());
+                                cur_stack = thread.stack_table.prefix[sample];
+                            }
+
+                            *folded_frames.entry(stack).or_default() += weight;
+                        }
+                    }
+
+                    let mut output = String::new();
+                    for (stack, weight) in folded_frames {
+                        for (i, s) in stack.iter().rev().enumerate() {
+                            if i != 0 {
+                                output.push(';');
+                            }
+                            output.push_str(s);
+                        }
+
+                        output.push_str(&format!(" {}\n", weight));
+                    }
+
+                    output.into()
+                } else if cfg!(target_family = "windows") {
                     let mut fold_er = DtraceFolder::from(
                         tracing_config
                             .fold_dtrace_options
