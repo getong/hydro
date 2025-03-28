@@ -131,13 +131,13 @@
 <a href=#131 id=131 data-nosnippet>131</a>                    <span class="kw">while let </span><span class="prelude-val">Some</span>(item) = recv.recv().<span class="kw">await </span>{
 <a href=#132 id=132 data-nosnippet>132</a>                        sink.feed(item)
 <a href=#133 id=133 data-nosnippet>133</a>                            .<span class="kw">await
-<a href=#134 id=134 data-nosnippet>134</a>                            </span>.expect(<span class="string">"Error processing async sink item."</span>);
+<a href=#134 id=134 data-nosnippet>134</a>                            </span>.expect(<span class="string">"Error processing async sink item"</span>);
 <a href=#135 id=135 data-nosnippet>135</a>                        <span class="kw">while let </span><span class="prelude-val">Ok</span>(item) = recv.try_recv() {
 <a href=#136 id=136 data-nosnippet>136</a>                            sink.feed(item)
 <a href=#137 id=137 data-nosnippet>137</a>                                .<span class="kw">await
-<a href=#138 id=138 data-nosnippet>138</a>                                </span>.expect(<span class="string">"Error processing async sink item."</span>);
+<a href=#138 id=138 data-nosnippet>138</a>                                </span>.expect(<span class="string">"Error processing async sink item"</span>);
 <a href=#139 id=139 data-nosnippet>139</a>                        }
-<a href=#140 id=140 data-nosnippet>140</a>                        sink.flush().<span class="kw">await</span>.expect(<span class="string">"Failed to flush sink."</span>);
+<a href=#140 id=140 data-nosnippet>140</a>                        sink.flush().<span class="kw">await</span>.expect(<span class="string">"Failed to flush sink"</span>);
 <a href=#141 id=141 data-nosnippet>141</a>                    }
 <a href=#142 id=142 data-nosnippet>142</a>                }
 <a href=#143 id=143 data-nosnippet>143</a>                #df_ident
@@ -148,7 +148,7 @@
 <a href=#148 id=148 data-nosnippet>148</a>        <span class="kw">let </span>write_iterator = <span class="macro">quote_spanned!</span> {op_span=&gt;
 <a href=#149 id=149 data-nosnippet>149</a>            <span class="kw">let </span>#ident = #root::pusherator::for_each::ForEach::new(|item| {
 <a href=#150 id=150 data-nosnippet>150</a>                <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = #send_ident.send(item) {
-<a href=#151 id=151 data-nosnippet>151</a>                    <span class="macro">panic!</span>(<span class="string">"Failed to send async write item for processing.: {}"</span>, err);
+<a href=#151 id=151 data-nosnippet>151</a>                    <span class="macro">panic!</span>(<span class="string">"Failed to send async write item for processing: {}"</span>, err);
 <a href=#152 id=152 data-nosnippet>152</a>                }
 <a href=#153 id=153 data-nosnippet>153</a>            });
 <a href=#154 id=154 data-nosnippet>154</a>        };
