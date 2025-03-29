@@ -1,6 +1,7 @@
 name: Build CLI
 
 on:
+  pull_request:
   push:
     branches:
       - main
@@ -149,6 +150,8 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           architecture: ${{ matrix.platform.arch }}
+      # https://github.com/actions/runner-images/issues/10001:
+      - run: choco upgrade llvm
       - name: "Build wheels"
         uses: PyO3/maturin-action@v1
         with:
