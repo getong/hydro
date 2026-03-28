@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["capitalize","chat_app","count_elems","futures","graph_reachability","singleton_input"]};
