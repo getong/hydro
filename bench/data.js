@@ -1,6 +1,6 @@
 window.BENCHMARK_DATA = 
 {
-  "lastUpdate": 1784357511830,
+  "lastUpdate": 1784443443290,
   "repoUrl": "https://github.com/getong/hydro",
   "entries": {
     "Benchmark": [
@@ -219032,6 +219032,208 @@ window.BENCHMARK_DATA =
             "name": "paxos_bench",
             "value": 204580,
             "range": "± 673.5",
+            "unit": "ops/s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Shadaj Laddad",
+            "username": "shadaj",
+            "email": "shadaj@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "0fba1cfa54ae72d81647c09d7dd4cadd0b442671",
+          "message": "feat(example_test): run example `main` by re-executing the test binary instead of `cargo run` (#3027)\n\nPreviously, `run_current_example!` spawned `cargo run --frozen\n--no-default-features -p <pkg> --example <name> --features ...` for each\nexample child. Because the feature flags computed for that invocation\noften differ from those used by the outer `cargo test`/`cargo nextest`\nbuild, this frequently retriggered a full recompilation of the\nworkspace, making example tests very slow.\n\nNow the macro runs the example's `main` from the already-compiled test\nbinary:\n\n- `ExampleChild::run_new` re-executes `std::env::current_exe()` (the\nexample's test binary, which already contains `main`) with the example's\narguments as real `argv` and `RUNNING_AS_EXAMPLE_TEST=1`. No cargo\ninvocation, so no recompilation — child startup is effectively instant.\n- `run_current_example!` registers a pre-main constructor (via\n`ctor::declarative::ctor!`, which works as a nested item at the macro\ncall site) that checks `RUNNING_AS_EXAMPLE_TEST` and, when set, calls\n`crate::main()` directly and exits — bypassing the libtest harness in\nthe child process. Since the child gets a clean `argv`, `clap`-based arg\nparsing in `main` works unchanged.\n- Added an `ExampleMainReturn` trait (implemented for `()` and\n`Result<T, E: Debug>`) so both plain and `Result`-returning `main`\nfunctions are supported, mapping the return value to the child's exit\ncode.\n- The `RUNNING_AS_EXAMPLE_TEST` env var name/value is unchanged, so\nexisting checks in examples (e.g. `compute_pi`'s rustflags tweak) keep\nworking.\n- Dropped the now-unneeded `trybuild-internals-api` dependency and the\n`extract_example_name` helper; added `ctor` (already in the workspace\ndependency tree via hydro_lang). `run_new` no longer takes\n`pkg_name`/`test_name`, so no call-site changes are needed anywhere.\n\nVerified: all `dfir_rs` example tests (echo_server, kvs, kvs_mut,\nkvs_replicated, kvs_bench, chat_dfir incl. gossip, two_pc_hf,\nthree_clique, echo_serde_json, lamport_clock, vector_clock) pass, and\n`hydro_test` examples (echo, map_reduce, compute_pi — including\n`Result`-returning mains) build and map_reduce passes end-to-end. The\necho_server test now completes in ~0.01s of test time with zero cargo\noverhead.\n\nCo-authored-by: Infinity 🤖 <infinity@hydro.run>",
+          "timestamp": "2026-07-14T23:08:00Z",
+          "url": "https://github.com/getong/hydro/commit/0fba1cfa54ae72d81647c09d7dd4cadd0b442671"
+        },
+        "date": 1784443443253,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "arithmetic/dfir_rs/compiled",
+            "value": 311177,
+            "range": "± 1611",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "arithmetic/dfir_rs/compiled_no_cheating",
+            "value": 6533267,
+            "range": "± 31489",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "arithmetic/dfir_rs/surface",
+            "value": 6895338,
+            "range": "± 228790",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cross_join_multiset/100/100/dfir",
+            "value": 51416,
+            "range": "± 1769",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cross_join_multiset/3000/3000/dfir",
+            "value": 14137955,
+            "range": "± 128755",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cross_join_multiset/30/30000/dfir",
+            "value": 1558143,
+            "range": "± 32489",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cross_join_multiset/30000/30/dfir",
+            "value": 1622944,
+            "range": "± 26951",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "fan_in/dfir_rs/surface",
+            "value": 44626111,
+            "range": "± 378812",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "fan_out/dfir_rs/surface",
+            "value": 6831277,
+            "range": "± 11593",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "fork_join/dfir_rs/surface",
+            "value": 13547603,
+            "range": "± 1363122",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "identity/dfir_rs/compiled",
+            "value": 6534928,
+            "range": "± 150385",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "identity/dfir_rs/surface",
+            "value": 7009221,
+            "range": "± 15336",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "dfir_rs_diamond",
+            "value": 42048981,
+            "range": "± 215905",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/identity",
+            "value": 4041,
+            "range": "± 160",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/unique",
+            "value": 23221,
+            "range": "± 538",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/map",
+            "value": 4133,
+            "range": "± 59",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/flat_map",
+            "value": 6752,
+            "range": "± 83",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/flat_map2",
+            "value": 528268,
+            "range": "± 2146",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/join",
+            "value": 55788,
+            "range": "± 1336",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/difference",
+            "value": 42165,
+            "range": "± 909",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/union",
+            "value": 17258,
+            "range": "± 353",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/tee",
+            "value": 7032,
+            "range": "± 76",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/fold",
+            "value": 7285,
+            "range": "± 184",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/sort",
+            "value": 72434,
+            "range": "± 558",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/crossjoin",
+            "value": 79420,
+            "range": "± 912",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/anti_join",
+            "value": 7604,
+            "range": "± 182",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/next_tick/small",
+            "value": 15414,
+            "range": "± 100",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/next_tick/big",
+            "value": 62078,
+            "range": "± 2671",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/group_by",
+            "value": 7641,
+            "range": "± 198",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "paxos_bench",
+            "value": 194800,
+            "range": "± 8289.75",
             "unit": "ops/s"
           }
         ]
