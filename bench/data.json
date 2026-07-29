@@ -1,5 +1,5 @@
 {
-  "lastUpdate": 1785220158548,
+  "lastUpdate": 1785307263638,
   "repoUrl": "https://github.com/getong/hydro",
   "entries": {
     "Benchmark": [
@@ -221051,6 +221051,208 @@
             "name": "paxos_bench",
             "value": 199000,
             "range": "± 10360.5",
+            "unit": "ops/s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Mingwei Samuel",
+            "username": "MingweiSamuel",
+            "email": "mingwei.samuel@gmail.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "2c131b0368fc66c5085e2ff6797477a4f4ed2e05",
+          "message": "refactor(dfir_lang)!: remove `.atomic` APIs on singletons/optionals (#3076)\n\nDoes not make sense to have atomic singletons. Use snapshot_atomic\ninstead.",
+          "timestamp": "2026-07-28T16:19:07Z",
+          "url": "https://github.com/getong/hydro/commit/2c131b0368fc66c5085e2ff6797477a4f4ed2e05"
+        },
+        "date": 1785307263601,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "arithmetic/dfir_rs/compiled",
+            "value": 311161,
+            "range": "± 4433",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "arithmetic/dfir_rs/compiled_no_cheating",
+            "value": 6532743,
+            "range": "± 11764",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "arithmetic/dfir_rs/surface",
+            "value": 6876934,
+            "range": "± 95696",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cross_join_multiset/100/100/dfir",
+            "value": 44699,
+            "range": "± 1733",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cross_join_multiset/3000/3000/dfir",
+            "value": 8507870,
+            "range": "± 84062",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cross_join_multiset/30/30000/dfir",
+            "value": 991624,
+            "range": "± 8637",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cross_join_multiset/30000/30/dfir",
+            "value": 1066013,
+            "range": "± 7720",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "fan_in/dfir_rs/surface",
+            "value": 44266507,
+            "range": "± 426033",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "fan_out/dfir_rs/surface",
+            "value": 6822472,
+            "range": "± 16660",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "fork_join/dfir_rs/surface",
+            "value": 13492959,
+            "range": "± 1288423",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "identity/dfir_rs/compiled",
+            "value": 6534701,
+            "range": "± 63365",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "identity/dfir_rs/surface",
+            "value": 6992438,
+            "range": "± 10886",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "dfir_rs_diamond",
+            "value": 41938427,
+            "range": "± 185616",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/identity",
+            "value": 4063,
+            "range": "± 56",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/unique",
+            "value": 22976,
+            "range": "± 960",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/map",
+            "value": 4135,
+            "range": "± 66",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/flat_map",
+            "value": 6635,
+            "range": "± 81",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/flat_map2",
+            "value": 373860,
+            "range": "± 1068",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/join",
+            "value": 55480,
+            "range": "± 654",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/difference",
+            "value": 44594,
+            "range": "± 385",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/union",
+            "value": 17149,
+            "range": "± 226",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/tee",
+            "value": 7025,
+            "range": "± 67",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/fold",
+            "value": 7315,
+            "range": "± 96",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/sort",
+            "value": 72643,
+            "range": "± 1140",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/crossjoin",
+            "value": 80272,
+            "range": "± 980",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/anti_join",
+            "value": 7325,
+            "range": "± 174",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/next_tick/small",
+            "value": 15447,
+            "range": "± 88",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/next_tick/big",
+            "value": 61609,
+            "range": "± 2879",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/group_by",
+            "value": 7607,
+            "range": "± 247",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "paxos_bench",
+            "value": 198420,
+            "range": "± 11927.51",
             "unit": "ops/s"
           }
         ]
