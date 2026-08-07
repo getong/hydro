@@ -1,6 +1,6 @@
 window.BENCHMARK_DATA = 
 {
-  "lastUpdate": 1785992075324,
+  "lastUpdate": 1786077560548,
   "repoUrl": "https://github.com/getong/hydro",
   "entries": {
     "Benchmark": [
@@ -222870,6 +222870,208 @@ window.BENCHMARK_DATA =
             "name": "paxos_bench",
             "value": 204480,
             "range": "± 370.94",
+            "unit": "ops/s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Shadaj Laddad",
+            "username": "shadaj",
+            "email": "shadaj@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "33e9b57182e5d895f897b813d19c0f4e996f786f",
+          "message": "test: redact line/column from stageleft macro names in snapshots (#3101)\n\nStageleft's `q!` macro generates helper macros whose names embed the\nsource file, line, and column (e.g.\n`__stageleft_quote_src_cluster_paxos_rs_157_21`). These names appear in\nhydro_test's `_ir`, mermaid, and surface-graph snapshot tests, so any\nunrelated code movement in hydro_lang/hydro_std/hydro_test would churn\nthe snapshots.\n\n- hydro_build_utils: add an insta `filters` setting to the shared\n  `nightly_wrapper!` macro (backing `assert_snapshot!` /\n  `assert_debug_snapshot!`) that rewrites\n  `(__stageleft_quote_\\w+_rs)_\\d+_\\d+` to `${1}_LINE_COL`, removing the\n  volatile position suffix; enable insta's `filters` feature.\n- Rewrite all 32 existing `.snap` files (stable + nightly) with the same\n  deterministic substitution so tests pass without regeneration.\n\nTrybuild `.stderr` files are intentionally untouched since they must\nmatch actual compiler output.\n\nVerified: all 9 affected snapshot tests in hydro_test (`*_ir`,\nchat_app) pass with no pending `.snap.new` files.\n\nCo-authored-by: Infinity 🤖 <infinity@hydro.run>",
+          "timestamp": "2026-07-31T23:55:31Z",
+          "url": "https://github.com/getong/hydro/commit/33e9b57182e5d895f897b813d19c0f4e996f786f"
+        },
+        "date": 1786077560497,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "arithmetic/dfir_rs/compiled",
+            "value": 311158,
+            "range": "± 420",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "arithmetic/dfir_rs/compiled_no_cheating",
+            "value": 6531875,
+            "range": "± 6422",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "arithmetic/dfir_rs/surface",
+            "value": 6903499,
+            "range": "± 38659",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cross_join_multiset/100/100/dfir",
+            "value": 44555,
+            "range": "± 2216",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cross_join_multiset/3000/3000/dfir",
+            "value": 8521672,
+            "range": "± 53780",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cross_join_multiset/30/30000/dfir",
+            "value": 992923,
+            "range": "± 13975",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cross_join_multiset/30000/30/dfir",
+            "value": 1057655,
+            "range": "± 19065",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "fan_in/dfir_rs/surface",
+            "value": 43264547,
+            "range": "± 446392",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "fan_out/dfir_rs/surface",
+            "value": 6839311,
+            "range": "± 27131",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "fork_join/dfir_rs/surface",
+            "value": 13350145,
+            "range": "± 1391705",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "identity/dfir_rs/compiled",
+            "value": 6531600,
+            "range": "± 89785",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "identity/dfir_rs/surface",
+            "value": 6998999,
+            "range": "± 98338",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "dfir_rs_diamond",
+            "value": 42481391,
+            "range": "± 253705",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/identity",
+            "value": 4065,
+            "range": "± 69",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/unique",
+            "value": 22543,
+            "range": "± 262",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/map",
+            "value": 4138,
+            "range": "± 69",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/flat_map",
+            "value": 6694,
+            "range": "± 70",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/flat_map2",
+            "value": 372994,
+            "range": "± 2618",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/join",
+            "value": 55849,
+            "range": "± 1555",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/difference",
+            "value": 44527,
+            "range": "± 436",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/union",
+            "value": 17207,
+            "range": "± 545",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/tee",
+            "value": 7000,
+            "range": "± 79",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/fold",
+            "value": 7311,
+            "range": "± 174",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/sort",
+            "value": 72213,
+            "range": "± 321",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/crossjoin",
+            "value": 79954,
+            "range": "± 275",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/anti_join",
+            "value": 7533,
+            "range": "± 177",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/next_tick/small",
+            "value": 15783,
+            "range": "± 870",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/next_tick/big",
+            "value": 61843,
+            "range": "± 2619",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "micro/ops/group_by",
+            "value": 7592,
+            "range": "± 168",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "paxos_bench",
+            "value": 189380,
+            "range": "± 11977.21",
             "unit": "ops/s"
           }
         ]
