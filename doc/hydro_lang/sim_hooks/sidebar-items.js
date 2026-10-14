@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["BatchHook","OrderingHook","SnapshotHook"],"trait":["SimHook"]};
+window.SIDEBAR_ITEMS = {"struct":["BatchHook","KeyedBatchHook","KeyedMergeOrderedHook","KeyedOrderingHook","KeyedSnapshotHook","MergeOrderedHook","OnCluster","OnMember","OnProcess","OrderingHook","PartialOrderingHook","RetriesHook","SnapshotHook"],"trait":["BindableHookScope","ScriptableHookScope","SimHook"]};
